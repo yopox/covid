@@ -23,7 +23,7 @@ for nomFichier in fichiers:
         age = auj.year - naissance.year - ((auj.month, auj.day) < (naissance.month, naissance.day))
 
         # Genre
-        genre = medicale['G4'].value
+        genre = medicale['H4'].value
         femme = 'f' in genre or 'F' in genre
 
         # Ajout des données 
