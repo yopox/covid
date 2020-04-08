@@ -83,6 +83,17 @@
         canvas {
             margin: 16px 0;
         }
+
+        .rowDiv {
+            display: flex;
+            flex-flow: row;
+            justify-content: center;
+            align-items: center;
+        }
+
+        input {
+            margin: 8px;
+        }
     </style>
 </head>
 
@@ -90,7 +101,46 @@
     <h1>Statistiques</h1>
 
     <div class="card">
+        <div class="title">Recherche par patient</div>
+        <div class="rowDiv">
+            Nom : <input type="text" name="nom" id="nom-recherche-patient"> <input type="button" value="Recherche"
+                onclick="recherchePatient()">
+        </div>
+        <div class="subsection" id="resultat-recherche-patient"></div>
+    </div>
+
+    <div class="card">
+        <div class="title">Recherche par médecin / infirmier·e</div>
+        <div class="rowDiv">
+            Nom : <input type="text" name="nom" id="nom-recherche-medecin"> <input type="button" value="Recherche"
+                onclick="rechercheMedecin()">
+        </div>
+        <div class="subsection" id="resultat-recherche-medecin"></div>
+    </div>
+
+    <div class="card">
         <div class="title">Filtres</div>
+        <div>
+            <input type="checkbox" name="checkbox0" id="checkbox0">
+            <label for="checkbox0">Toutes les fiches</label>
+        </div>
+        <div>
+            <input type="checkbox" name="checkbox1" id="checkbox1">
+            <label for="checkbox1">Autosurveillance à domicile sans test</label>
+        </div>
+        <div>
+            <input type="checkbox" name="checkbox2" id="checkbox2">
+            <label for="checkbox2">Test négatif</label>
+        </div>
+        <div>
+            <input type="checkbox" name="checkbox3" id="checkbox3">
+            <label for="checkbox3">Test positif</label>
+        </div>
+        <div>
+            <input type="checkbox" name="checkbox4" id="checkbox4">
+            <label for="checkbox4">Hospitalisation</label>
+        </div>
+        <input type="button" value="Filtrer" onclick="filtrer()">
     </div>
 
     <div id="container">
@@ -142,6 +192,13 @@
                 </div>
             </div>
 
+        </div>
+
+        <div class="card">
+            <div class="title">Noms</div>
+
+            <div class="subsection" id="nom-resultat">
+            </div>
         </div>
     </div>
 
@@ -239,6 +296,13 @@
         rewriteUniquePercentage("j", mapProperty("j-consultation")(selectedData).sort())
 
         rewriteUniquePercentage("charge", mapProperty("adresse-par")(selectedData).sort())
+
+        var nomsResultat = document.getElementById("nom-resultat")
+        nomsResultat.innerHTML = "<ul>"
+        selectedData.forEach(function(x) {
+            nomsResultat.innerHTML += "<li>" + x["nom"] + "</li>"
+        })
+        nomsResultat.innerHTML += "</ul>"
     }
 
     // Chart utilities
@@ -291,6 +355,71 @@
             },
             options: percentageOptions
         })
+    }
+
+    function recherchePatient() {
+        var nom = document.getElementById("nom-recherche-patient").value.toLowerCase()
+        var resultat = document.getElementById("resultat-recherche-patient")
+        resultat.innerHTML = "<ul>"
+        data.forEach(function (line) {
+            if (line["nom"].toLowerCase().includes(nom)) {
+                var suivi = ""
+                if (line["suivi"]["autosurveillance"]) suivi = "Autosurveillance à domicile sans test"
+                if (line["suivi"]["test-covid"]) suivi = "Test non reçu"
+                if (line["suivi"]["test-recu"] && line["suivi"]["test-negatif"]) suivi = "Test négatif"
+                if (line["suivi"]["test-recu"] && line["suivi"]["test-positif"]) suivi = "Test positif"
+                if (line["suivi"]["hospitalisation"]) suivi = "Autosurveillance à domicile sans test"
+                resultat.innerHTML += "<li>" + line["nom"] + "<ul><li>Date : " + line["date-consultation"] + "</li><li>Heure : " + line["heure-consultation"] + "</li><li>Médecin : " + line["nom-medecin"] + "</li><li>Infirmier·e : " + line["nom-infirmier"] + "</li><li>Suivi : " + suivi + "</li></ul></li>"
+            }
+        })
+        resultat.innerHTML += "</ul>"
+    }
+
+    function rechercheMedecin() {
+        var nom = document.getElementById("nom-recherche-medecin").value.toLowerCase()
+        var resultat = document.getElementById("resultat-recherche-medecin")
+        resultat.innerHTML = "<ul>"
+        data.forEach(function (line) {
+            if (line["nom-medecin"] != undefined && line["nom-medecin"].toLowerCase().includes(nom) || line["nom-infirmier"] != undefined && line["nom-infirmier"].toLowerCase().includes(nom)) {
+                var suivi = ""
+                if (line["suivi"]["autosurveillance"]) suivi = "Autosurveillance à domicile sans test"
+                if (line["suivi"]["test-covid"]) suivi = "Test non reçu"
+                if (line["suivi"]["test-recu"] && line["suivi"]["test-negatif"]) suivi = "Test négatif"
+                if (line["suivi"]["test-recu"] && line["suivi"]["test-positif"]) suivi = "Test positif"
+                if (line["suivi"]["hospitalisation"]) suivi = "Autosurveillance à domicile sans test"
+                resultat.innerHTML += "<li>" + line["nom"] + "<ul><li>Date : " + line["date-consultation"] + "</li><li>Heure : " + line["heure-consultation"] + "</li><li>Médecin : " + line["nom-medecin"] + "</li><li>Infirmier·e : " + line["nom-infirmier"] + "</li><li>Suivi : " + suivi + "</li></ul></li>"
+            }
+        })
+        resultat.innerHTML += "</ul>"
+    }
+
+    function filtrer() {
+        if (document.getElementById("checkbox0").checked) {
+            selectedData = data
+            update()
+            return 1
+        }
+        var c1 = document.getElementById("checkbox1").checked
+        var c2 = document.getElementById("checkbox2").checked
+        var c3 = document.getElementById("checkbox3").checked
+        var c4 = document.getElementById("checkbox4").checked
+        selectedData = data.filter(function(x) {
+            var selected = false
+            if (c1) {
+                selected = selected || x["suivi"]["autosurveillance"]
+            }
+            if (c2) {
+                selected = selected || (x["suivi"]["test-recu"] && x["suivi"]["test-negatif"])
+            }
+            if (c3) {
+                selected = selected || (x["suivi"]["test-recu"] && x["suivi"]["test-positif"])
+            }
+            if (c4) {
+                selected = selected || x["suivi"]["hospitalisation"]
+            }
+            return selected
+        })
+        update()
     }
 
     update()

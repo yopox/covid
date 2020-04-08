@@ -4,24 +4,32 @@ import glob
 import re
 import unidecode
 import json
-
-print("Analyse des fichiers…")
-
+global rapport
 
 # Liste des fichiers .xlsx
 fichiers = [x for x in glob.glob("**/*.xlsm", recursive=False) if "~" not in x]
-jours = []
+sortie = []
+rapport = ""
+
+def log(texte):
+    global rapport
+    rapport += texte
+    print(texte)
 
 if len(fichiers) > 1:
-    print(f"{len(fichiers)} fiches trouvées.")
+    log(f"• {len(fichiers)} fiches trouvées.\n")
 else:
-    print(f"{len(fichiers)} fiche trouvée.")
+    log(f"• {len(fichiers)} fiche trouvée.\n")
+
+log("• Erreurs d'analyse :\n")
 
 for nomFichier in fichiers:
 
     pb = "Chargement du fichier"
     entrees = {}
     try:
+        entrees["nom-fichier"] = nomFichier
+
         # Chargement du .xlsm
         classeur = load_workbook(filename = nomFichier)
         fa = classeur['Fiche Administrative']
@@ -61,11 +69,11 @@ for nomFichier in fichiers:
 
         pb = "Médecin traitant"
         if fa['C15'].value is not None:
-            entrees["medecin-traitant"] = unidecode.unidecode(fa['C15'].value)
+            entrees["medecin-traitant"] = unidecode.unidecode(str(fa['C15'].value))
 
         pb = "Adressé par"
         if fa['C16'].value is not None:
-            entrees["adresse-par"] = unidecode.unidecode(fa['C16'].value).capitalize()
+            entrees["adresse-par"] = unidecode.unidecode(str(fa['C16'].value)).capitalize()
 
         pb = "J1"
         if fm['E7'].value is not None:
@@ -81,11 +89,11 @@ for nomFichier in fichiers:
 
         pb = "Nom infirmier"
         if fm['H2'].value is not None:
-            entrees["nom-infirmier"] = unidecode.unidecode(fm['H2'].value)
+            entrees["nom-infirmier"] = unidecode.unidecode(str(fm['H2'].value))
 
         pb = "Nom medecin"
         if fm['K2'].value is not None:
-            entrees["nom-medecin"] = unidecode.unidecode(fm['K2'].value)
+            entrees["nom-medecin"] = unidecode.unidecode(str(fm['K2'].value))
 
         pb = "Suivi"
         entrees["suivi"] = {
@@ -150,7 +158,7 @@ for nomFichier in fichiers:
             "insiffisance-cardiaque": fm['S5'].value,
             "atcd-cv": fm['S6'].value,
             "diabete": fm['S7'].value,
-            "immunodepressionn": fm['S8'].value,
+            "immunodepression": fm['S8'].value,
             "imc": fm['S9'].value,
             "insuffisance-renale": fm['S10'].value,
             "grossesse": fm['S11'].value,
@@ -163,12 +171,41 @@ for nomFichier in fichiers:
             "contact-covid": fm['O38'].value
         }
 
-        jours.append(entrees)
+        sortie.append(entrees)
 
     except:
-        print(f"/!\ Erreur lors de la lecture de {nomFichier} (a priori sur {pb}). A été lu : {entrees}")
+        log(f"\tFichier : {nomFichier}\n\tErreur : {pb}\n")
+
+
+log("• Erreurs de format de case (il ne faut pas que le format soit une date) :\n")
+
+interdit = "<class 'datetime.datetime'>"
+aSuppr = []
+i = -1
+for entrees in sortie:
+    i += 1
+    for cle in entrees:
+        if str(type(entrees[cle])) == interdit:
+            log(f"\tFichier : {entrees['nom-fichier']}\n\tErreur : {cle}\n")
+    
+            if i not in aSuppr:
+                aSuppr.append(i)
+        if type(entrees[cle]) is dict:
+            for sousCle in entrees[cle]:
+                if str(type(entrees[cle][sousCle])) == interdit:
+                    log(f"\tFichier : {entrees['nom-fichier']}\n\tErreur : {cle}\n")
+            
+                    if i not in aSuppr:
+                        aSuppr.append(i)
+
+while len(aSuppr) > 0:
+    del sortie[aSuppr[-1]]
+    del aSuppr[-1]
+
+with open("log.txt", "w") as logFile:
+    logFile.write(rapport)
 
 with open("stats.js", "w") as output:
     output.write("var data = ")
-    json.dump(jours, output, indent=2, skipkeys=True)
-    print(f"Écriture de stats.js réussie ({len(jours)} / {len(fichiers)} fiches traitées).")
+    json.dump(sortie, output, indent=2, skipkeys=True)
+    log(f"• Écriture de stats.js réussie ({len(sortie)} / {len(fichiers)} fiches traitées).")
