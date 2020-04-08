@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport">
+    <title>COVID 19 — Stats</title>
+    <script src="stats.js"></script>
+    <script src="assets/chart.bundle.min.js"></script>
+    <style>
+        @font-face {
+            font-family: "WorkSans";
+            src: url("assets/WorkSans-Regular.woff") format("woff");
+        }
+
+        @font-face {
+            font-family: "WorkSansItalic";
+            src: url("assets/WorkSans-Italic.woff") format("woff");
+        }
+
+        @font-face {
+            font-family: "WorkSansBold";
+            src: url("assets/WorkSans-SemiBold.woff") format("woff");
+        }
+
+        body {
+            font-family: "WorkSans";
+            padding: 64px;
+            margin: 0;
+            display: flex;
+            flex-flow: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #container {
+            display: flex;
+            flex-flow: row;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        h1 {
+            font-family: "WorkSansBold";
+            font-size: 40px;
+        }
+
+        .title {
+            font-family: "WorkSansItalic";
+            font-size: 32px;
+            border-top: 16px;
+        }
+
+        .card {
+            display: flex;
+            flex-flow: column;
+            justify-content: center;
+            align-items: flex-start;
+            margin: 16px;
+            padding: 16px;
+            border: 2px solid black;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        .subcard {
+            display: flex;
+            flex-flow: row;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .section {
+            padding-top: 16px;
+            font-size: 22px;
+        }
+
+        .subsection {
+            padding-left: 32px;
+        }
+
+        canvas {
+            margin: 16px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Statistiques</h1>
+
+    <div class="card">
+        <div class="title">Filtres</div>
+    </div>
+
+    <div id="container">
+
+        <div class="card">
+            <div class="title">Généralités</div>
+
+            <div class="section">
+                Taille de l'échantillon : <span id="echantillon">?</span> <br>
+                Genre :
+                <div class="subsection">
+                    Féminin : <span id="feminin">?</span> <br>
+                    Masculin : <span id="masculin">?</span> <br>
+                </div>
+                Moyenne d'âge :
+                <div class="subsection">
+                    Générale : <span id="age">?</span> <br>
+                    Féminine : <span id="age-feminin">?</span> <br>
+                    Masculine : <span id="age-masculin">?</span> <br>
+                </div>
+                Répartition :
+                <div class="subsection">
+                    Enfants (-18 ans) : <span id="enfants">?</span> <br>
+                    Adultes (-70 ans) : <span id="adultes1">?</span> <br>
+                    Adultes (+70 ans) : <span id="adultes2">?</span> <br>
+                </div>
+                Localisation :
+                <div class="subsection" id="geo">
+                </div>
+                Médecin traitant :
+                <div class="subsection" id="medecin">
+                </div>
+            </div>
+
+        </div>
+
+        <div class="card">
+            <div class="title">Prise en charge</div>
+
+            <div class="section">
+                Date :
+                <div class="subsection" id="date">
+                </div>
+                Consultation à :
+                <div class="subsection" id="j">
+                </div>
+                Prise en charge :
+                <div class="subsection" id="charge">
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+<script>
+    function mapProperty(property) {
+        return lines => lines.map(l => l[property]).filter(x => x != undefined)
+    }
+
+    function reduceTrueFalse(lines) {
+        var trueNb = lines.filter(l => l).length
+        return [trueNb, lines.length - trueNb]
+    }
+
+    function reduceAverage(lines) {
+        return [lines.reduce((a, b) => a + b, 0) / lines.length]
+    }
+
+    function reduceAgeCategory(lines) {
+        var categories = [0, 0, 0]
+        lines.forEach(age => {
+            if (age < 18) {
+                categories[0] += 1
+            } else if (age < 70) {
+                categories[1] += 1
+            } else {
+                categories[2] += 1
+            }
+        })
+        return categories
+    }
+
+    function rewrite(elemID, content) {
+        document.getElementById(elemID).innerHTML = content
+    }
+
+    function rewritePercentage(elemID, content, total) {
+        rewrite(elemID, content + " (" + intStr(content / total * 100) + "%)")
+    }
+
+    function unique(value, index, self) {
+        return self.indexOf(value) === index;
+    }
+
+    function capitalizeEachWord(str) {
+        return str.replace(/\w\S*/g, function (txt) {
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+        })
+    }
+
+    function rewriteUniquePercentage(id, lines) {
+        var rep = lines.filter(unique).map(
+            x => x + " : " + lines.filter(y => y == x).length +
+                " (" + intStr(lines.filter(y => y == x).length / lines.length * 100) + "%)")
+        rewrite(id, rep.reduce((a, b) => a + "<br>" + b))
+    }
+
+    function rewriteAverage(id, lines, suffix = "") {
+        rewrite(id, intStr(lines.reduce((a, b) => a + b, 0) / lines.length) + suffix)
+    }
+
+    function intStr(int) {
+        return int.toFixed(1)
+    }
+
+
+    // Setup
+
+    selectedData = data
+
+    function update() {
+        var total = selectedData.length
+
+        rewrite("echantillon", selectedData.length)
+
+        var genre = reduceTrueFalse(mapProperty("femme")(selectedData))
+        rewritePercentage("feminin", genre[0], total)
+        rewritePercentage("masculin", genre[1], total)
+
+        var age = mapProperty("age")(selectedData)
+        rewriteAverage("age", age, " ans")
+        rewriteAverage("age-feminin", mapProperty("age")(selectedData.filter(x => x["femme"])), " ans")
+        rewriteAverage("age-masculin", mapProperty("age")(selectedData.filter(x => !x["femme"])), " ans")
+
+        rewritePercentage("enfants", age.filter(a => a < 18).length, age.length)
+        rewritePercentage("adultes1", age.filter(a => a >= 18 && a < 70).length, age.length)
+        rewritePercentage("adultes2", age.filter(a => a >= 70).length, age.length)
+
+        rewriteUniquePercentage("geo", mapProperty("code-postal")(selectedData).sort())
+
+        rewriteUniquePercentage("medecin", mapProperty("medecin-traitant")(selectedData).map(mT => capitalizeEachWord(mT)).sort())
+
+        rewriteUniquePercentage("date", mapProperty("date-consultation")(selectedData))
+
+        rewriteUniquePercentage("j", mapProperty("j-consultation")(selectedData).sort())
+
+        rewriteUniquePercentage("charge", mapProperty("adresse-par")(selectedData).sort())
+    }
+
+    // Chart utilities
+
+    var colors = ["#169B62", "#5770BE"]
+    var barColors = ["#91AE4F", "#466964", "#5770BE", "#FF8D7E"]
+
+    var percentageOptions = {
+        tooltips: {
+            callbacks: {
+                label: function (tooltipItem, data) {
+                    var allData = data.datasets[tooltipItem.datasetIndex].data;
+                    var tooltipLabel = data.labels[tooltipItem.index];
+                    var tooltipData = allData[tooltipItem.index];
+                    var total = 0;
+                    for (var i in allData) {
+                        total += allData[i];
+                    }
+                    var tooltipPercentage = Math.round((tooltipData / total) * 100);
+                    return " " + tooltipLabel + ': ' + tooltipData + ' (' + tooltipPercentage + '%)';
+                }
+            }
+        }
+    }
+
+    function pie(elementID, lines, mapFun, reduceFun, labels, backgroundColors) {
+        new Chart(elementID, {
+            type: 'pie',
+            data: {
+                datasets: [{
+                    data: reduceFun(mapFun(lines)),
+                    backgroundColor: backgroundColors
+                }],
+                labels: labels
+            },
+            options: percentageOptions
+        })
+    }
+
+    function bar(elementID, lines, mapFun, reduceFun, datasetLabel, labels, backgroundColors) {
+        new Chart(elementID, {
+            type: 'bar',
+            data: {
+                datasets: [{
+                    label: datasetLabel,
+                    data: reduceFun(mapFun(lines)),
+                    backgroundColor: backgroundColors
+                }],
+                labels: labels
+            },
+            options: percentageOptions
+        })
+    }
+
+    update()
+</script>
+
+</html>
