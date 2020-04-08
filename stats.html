@@ -253,7 +253,7 @@
         var rep = lines.filter(unique).map(
             x => x + " : " + lines.filter(y => y == x).length +
                 " (" + intStr(lines.filter(y => y == x).length / lines.length * 100) + "%)")
-        rewrite(id, rep.reduce((a, b) => a + "<br>" + b))
+        rewrite(id, rep.reduce((a, b) => a + (a != "" ? "<br>" : "") + b, ""))
     }
 
     function rewriteAverage(id, lines, suffix = "") {
