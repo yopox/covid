@@ -371,8 +371,8 @@
                 var suivi = ""
                 if (line["suivi"]["autosurveillance"]) suivi = "Autosurveillance à domicile sans test"
                 if (line["suivi"]["test-covid"]) suivi = "Test non reçu"
-                if (line["suivi"]["test-recu"] && !line["suivi"]["test-positif"]) suivi = "Test négatif"
-                if (line["suivi"]["test-recu"] && line["suivi"]["test-positif"]) suivi = "Test positif"
+                if (line["suivi"]["test-negatif"]) suivi = "Test négatif"
+                if (line["suivi"]["test-positif"]) suivi = "Test positif"
                 if (line["suivi"]["hospitalisation"]) suivi = "Autosurveillance à domicile sans test"
                 resultat.innerHTML += "<li>" + line["nom"] + "<ul><li>Date : " + line["date-consultation"] + "</li><li>Heure : " + line["heure-consultation"] + "</li><li>Médecin : " + line["nom-medecin"] + "</li><li>Infirmier·e : " + line["nom-infirmier"] + "</li><li>Suivi : " + suivi + "</li></ul></li>"
             }
@@ -389,8 +389,8 @@
                 var suivi = ""
                 if (line["suivi"]["autosurveillance"]) suivi = "Autosurveillance à domicile sans test"
                 if (line["suivi"]["test-covid"]) suivi = "Test non reçu"
-                if (line["suivi"]["test-recu"] && !line["suivi"]["test-positif"]) suivi = "Test négatif"
-                if (line["suivi"]["test-recu"] && line["suivi"]["test-positif"]) suivi = "Test positif"
+                if (line["suivi"]["test-negatif"]) suivi = "Test négatif"
+                if (line["suivi"]["test-positif"]) suivi = "Test positif"
                 if (line["suivi"]["hospitalisation"]) suivi = "Autosurveillance à domicile sans test"
                 resultat.innerHTML += "<li>" + line["nom"] + "<ul><li>Date : " + line["date-consultation"] + "</li><li>Heure : " + line["heure-consultation"] + "</li><li>Médecin : " + line["nom-medecin"] + "</li><li>Infirmier·e : " + line["nom-infirmier"] + "</li><li>Suivi : " + suivi + "</li></ul></li>"
             }

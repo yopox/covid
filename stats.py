@@ -99,7 +99,7 @@ for nomFichier in fichiers:
         entrees["suivi"] = {
             "autosurveillance": fm["C52"].value,
             "test-covid": fm["F52"].value,
-            "test-recu" : fm["F48"].value,
+            "test-negatif" : fm["F49"].value,
             "test-positif" : fm["F50"].value,
             "hospitalisation" : fm["I52"].value
         }
