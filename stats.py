@@ -19,6 +19,7 @@ else:
 
 for nomFichier in fichiers:
 
+    pb = "Chargement du fichier"
     entrees = {}
     try:
         # Chargement du .xlsm
@@ -26,51 +27,51 @@ for nomFichier in fichiers:
         fa = classeur['Fiche Administrative']
         fm = classeur['Fiche Médicale']
 
-        # Date de la consultation
+        pb = "Date de la consultation"
         if fa['C3'].value is not None:
             entrees["date-consultation"] = fa['C3'].value.strftime("%d/%m/%y")
 
-        # Nom
+        pb = "Nom"
         if fa['C5'].value is not None and fa['C6'].value is not None:
             entrees["nom"] = fa['C6'].value + " " + fa['C5'].value
         
-        # Heure de la consultation
+        pb = "Heure de la consultation"
         if fa['C4'].value is not None:
             if type(fa['C4'].value) is date:
                 entrees["heure-consultation"] = fa['C4'].value.strftime("%H:%M")
             elif type(fa['C4'].value) is str:
                 entrees["heure-consultation"] = fa['C4'].value
 
-        # Calcul de l'âge
+        pb = "Calcul de l'âge"
         naissance = fa['C7'].value
         if naissance is not None:
             auj = date.today() 
             entrees["age"] = auj.year - naissance.year - ((auj.month, auj.day) < (naissance.month, naissance.day))
 
-        # Genre
+        pb = "Genre"
         genre = fm['I4'].value
         if genre is not None:
             entrees["femme"] = 'f' in genre or 'F' in genre
 
-        # Code Postal
+        pb = "Code Postal"
         if fa['C10'].value is not None:
             code = re.search(r"([0-9]{5})", fa['C10'].value)
             if code is not None:
                 entrees["code-postal"] = re.search(r"([0-9]{5})", fa['C10'].value).group(1)
 
-        # Médecin traitant
+        pb = "Médecin traitant"
         if fa['C15'].value is not None:
             entrees["medecin-traitant"] = unidecode.unidecode(fa['C15'].value)
 
-        # Adressé par
+        pb = "Adressé par"
         if fa['C16'].value is not None:
             entrees["adresse-par"] = unidecode.unidecode(fa['C16'].value).capitalize()
 
-        # J1
+        pb = "J1"
         if fm['E7'].value is not None:
             entrees["j1"] = fm['E7'].value.strftime("%d/%m/%y")
 
-        # Première consultation
+        pb = "Première consultation"
         if fm['E7'].value is not None and fa['C3'].value is not None:
             delai = fa['C3'].value.toordinal() - fm['E7'].value.toordinal() + 1
             if delai < 10:
@@ -78,15 +79,15 @@ for nomFichier in fichiers:
             else:
                 entrees["j-consultation"] = f"J{delai}"
 
-        # Nom infirmier
+        pb = "Nom infirmier"
         if fm['H2'].value is not None:
             entrees["nom-infirmier"] = unidecode.unidecode(fm['H2'].value)
 
-        # Nom medecin
+        pb = "Nom medecin"
         if fm['K2'].value is not None:
             entrees["nom-medecin"] = unidecode.unidecode(fm['K2'].value)
 
-        # Suivi
+        pb = "Suivi"
         entrees["suivi"] = {
             "autosurveillance": fm["C52"].value,
             "test-covid": fm["F52"].value,
@@ -95,11 +96,11 @@ for nomFichier in fichiers:
             "hospitalisation" : fm["I52"].value
         }
 
-        # Autres
+        pb = "Autres"
         entrees["proche-fragile"] = fm['O39'].value
         entrees["piece-confinement"] = fm['O40'].value
 
-        # Diagnostic
+        pb = "Diagnostic"
         if fm["O30"]:
             entrees["diagnostic"] = "Peu Probable"
         elif fm["O31"]:
@@ -111,7 +112,7 @@ for nomFichier in fichiers:
         else:
             entrees["diagnostic"] = "Manquant"
 
-        # Critères de gravité
+        pb = "Critères de gravité"
         entrees["criteres-de-gravite"] = {
             "polypnee": fm['O3'].value,
             "sat": fm['O4'].value,
@@ -121,7 +122,7 @@ for nomFichier in fichiers:
             "aeg-brutale": fm['O8'].value
         }
 
-        # Paramètres vitaux
+        pb = "Paramètres vitaux"
         entrees["parametres-vitaux"] = {
             "sat": fm['G12'].value,
             "frequence-respiratoire": fm['G13'].value,
@@ -130,7 +131,7 @@ for nomFichier in fichiers:
             "frequence-cardiaque": fm['G16'].value
         }
 
-        # Paramètres cliniques
+        pb = "Paramètres cliniques"
         entrees["parametres-cliniques"] = {
             "sensation": fm['G20'].value,
             "frissons": str(fm['G21'].value).count("+"),
@@ -142,7 +143,7 @@ for nomFichier in fichiers:
             "dysgueusie": str(fm['G27'].value).count("+")
         }
 
-        # Facteurs de risque
+        pb = "Facteurs de risque"
         entrees["facteurs-de-risque"] = {
             "age": entrees["age"] >= 70,
             "patho-respiratoire": fm['S4'].value,
@@ -165,7 +166,7 @@ for nomFichier in fichiers:
         jours.append(entrees)
 
     except:
-        print(f"/!\ Erreur lors de la lecture de {nomFichier}. A été lu : {entrees}")
+        print(f"/!\ Erreur lors de la lecture de {nomFichier} (a priori sur {pb}). A été lu : {entrees}")
 
 with open("stats.js", "w") as output:
     output.write("var data = ")
