@@ -429,7 +429,7 @@
         var fauxNegatifs = document.getElementById("faux-negatifs")
         fauxNegatifs.innerHTML = "<ul>"
         data.forEach(function(x) {
-            return !x["suivi"]["test-positif"] && x["diagnostic"]
+            return x["suivi"]["test-negatif"] && x["diagnostic"] == "Très Probable"
         })
         fauxNegatifs.innerHTML += "</ul>"
 
