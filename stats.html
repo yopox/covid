@@ -426,14 +426,14 @@
         })
         update()
 
-        var fauxNegatifs = document.getElementById("faux-negatifs")
-        fauxNegatifs.innerHTML = "<ul>"
-        data.forEach(function(x) {
-            return x["suivi"]["test-negatif"] && x["diagnostic"] == "Tres Probable"
-        })
-        fauxNegatifs.innerHTML += "</ul>"
-
     }
+
+    var fauxNegatifs = document.getElementById("faux-negatifs")
+    fauxNegatifs.innerHTML = "<ul>"
+    data.filter(x => x["suivi"]["test-negatif"] && x["diagnostic"] == "Tres Probable").forEach(function(line) {
+        fauxNegatifs.innerHTML += "<li>" + line["nom"] + "</li>"
+    })
+    fauxNegatifs.innerHTML += "</ul>"
 
     update()
 </script>
