@@ -114,9 +114,9 @@ for nomFichier in fichiers:
         elif fm["O31"]:
             entrees["diagnostic"] = "Suspect"
         elif fm["R30"]:
-            entrees["diagnostic"] = "Très Probable"
+            entrees["diagnostic"] = "Tres Probable"
         elif fm["R31"]:
-            entrees["diagnostic"] = "COVID confirmé par test"
+            entrees["diagnostic"] = "COVID confirme par test"
         else:
             entrees["diagnostic"] = "Manquant"
 
