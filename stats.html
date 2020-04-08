@@ -414,10 +414,10 @@
                 selected = selected || x["suivi"]["autosurveillance"]
             }
             if (c2) {
-                selected = selected || (x["suivi"]["test-recu"] && !x["suivi"]["test-positif"])
+                selected = selected || x["suivi"]["test-negatif"]
             }
             if (c3) {
-                selected = selected || (x["suivi"]["test-recu"] && x["suivi"]["test-positif"])
+                selected = selected || x["suivi"]["test-positif"]
             }
             if (c4) {
                 selected = selected || x["suivi"]["hospitalisation"]
