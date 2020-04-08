@@ -109,13 +109,13 @@ for nomFichier in fichiers:
         entrees["piece-confinement"] = fm['O40'].value
 
         pb = "Diagnostic"
-        if fm["O30"]:
+        if fm["O30"].value:
             entrees["diagnostic"] = "Peu Probable"
-        elif fm["O31"]:
+        elif fm["O31"].value:
             entrees["diagnostic"] = "Suspect"
-        elif fm["R30"]:
+        elif fm["R30"].value:
             entrees["diagnostic"] = "Tres Probable"
-        elif fm["R31"]:
+        elif fm["R31"].value:
             entrees["diagnostic"] = "COVID confirme par test"
         else:
             entrees["diagnostic"] = "Manquant"
