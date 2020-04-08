@@ -101,6 +101,11 @@
     <h1>Statistiques</h1>
 
     <div class="card">
+        <div class="title">Faux négatifs</div>
+        <div class="subsection" id="faux-negatifs"></div>
+    </div>
+
+    <div class="card">
         <div class="title">Recherche par patient</div>
         <div class="rowDiv">
             Nom : <input type="text" name="nom" id="nom-recherche-patient"> <input type="button" value="Recherche"
@@ -366,7 +371,7 @@
                 var suivi = ""
                 if (line["suivi"]["autosurveillance"]) suivi = "Autosurveillance à domicile sans test"
                 if (line["suivi"]["test-covid"]) suivi = "Test non reçu"
-                if (line["suivi"]["test-recu"] && line["suivi"]["test-negatif"]) suivi = "Test négatif"
+                if (line["suivi"]["test-recu"] && !line["suivi"]["test-positif"]) suivi = "Test négatif"
                 if (line["suivi"]["test-recu"] && line["suivi"]["test-positif"]) suivi = "Test positif"
                 if (line["suivi"]["hospitalisation"]) suivi = "Autosurveillance à domicile sans test"
                 resultat.innerHTML += "<li>" + line["nom"] + "<ul><li>Date : " + line["date-consultation"] + "</li><li>Heure : " + line["heure-consultation"] + "</li><li>Médecin : " + line["nom-medecin"] + "</li><li>Infirmier·e : " + line["nom-infirmier"] + "</li><li>Suivi : " + suivi + "</li></ul></li>"
@@ -384,7 +389,7 @@
                 var suivi = ""
                 if (line["suivi"]["autosurveillance"]) suivi = "Autosurveillance à domicile sans test"
                 if (line["suivi"]["test-covid"]) suivi = "Test non reçu"
-                if (line["suivi"]["test-recu"] && line["suivi"]["test-negatif"]) suivi = "Test négatif"
+                if (line["suivi"]["test-recu"] && !line["suivi"]["test-positif"]) suivi = "Test négatif"
                 if (line["suivi"]["test-recu"] && line["suivi"]["test-positif"]) suivi = "Test positif"
                 if (line["suivi"]["hospitalisation"]) suivi = "Autosurveillance à domicile sans test"
                 resultat.innerHTML += "<li>" + line["nom"] + "<ul><li>Date : " + line["date-consultation"] + "</li><li>Heure : " + line["heure-consultation"] + "</li><li>Médecin : " + line["nom-medecin"] + "</li><li>Infirmier·e : " + line["nom-infirmier"] + "</li><li>Suivi : " + suivi + "</li></ul></li>"
@@ -409,7 +414,7 @@
                 selected = selected || x["suivi"]["autosurveillance"]
             }
             if (c2) {
-                selected = selected || (x["suivi"]["test-recu"] && x["suivi"]["test-negatif"])
+                selected = selected || (x["suivi"]["test-recu"] && !x["suivi"]["test-positif"])
             }
             if (c3) {
                 selected = selected || (x["suivi"]["test-recu"] && x["suivi"]["test-positif"])
@@ -420,6 +425,14 @@
             return selected
         })
         update()
+
+        var fauxNegatifs = document.getElementById("faux-negatifs")
+        fauxNegatifs.innerHTML = "<ul>"
+        data.forEach(function(x) {
+            return !x["suivi"]["test-positif"] && x["diagnostic"]
+        })
+        fauxNegatifs.innerHTML += "</ul>"
+
     }
 
     update()
