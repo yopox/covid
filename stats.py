@@ -150,7 +150,7 @@ for nomFichier in fichiers:
             "agueusie": str(fm['G26'].value).count("+"),
             "dysgueusie": str(fm['G27'].value).count("+")
         }
-        entrees["examen-clinique"] = fm['C29'].value
+        entrees["examen-clinique"] = unidecode.unidecode(str(fm['C29'].value))
 
         pb = "Facteurs de risque"
         entrees["facteurs-de-risque"] = {
