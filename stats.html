@@ -6,7 +6,6 @@
     <meta name="viewport">
     <title>COVID 19 — Stats</title>
     <script src="stats.js"></script>
-    <script src="assets/chart.bundle.min.js"></script>
     <style>
         @font-face {
             font-family: "WorkSans";
@@ -94,6 +93,11 @@
         input {
             margin: 8px;
         }
+
+        #filtres .section {
+            padding: 0 0 0 32px;
+            font-size: 12px;
+        }
     </style>
 </head>
 
@@ -123,11 +127,11 @@
         <div class="subsection" id="resultat-recherche-medecin"></div>
     </div>
 
-    <div class="card">
+    <div class="card" id="filtres">
         <div class="title">Filtres</div>
         <div>
-            <input type="checkbox" name="checkbox0" id="checkbox0">
-            <label for="checkbox0">Toutes les fiches</label>
+            <input type="checkbox" name="checkboxou" id="checkboxou">
+            <label for="checkboxou">Décoché : ET entre les filtres, Coché : OU entre les filtres</label>
         </div>
         <div>
             <input type="checkbox" name="checkbox1" id="checkbox1">
@@ -145,6 +149,57 @@
             <input type="checkbox" name="checkbox4" id="checkbox4">
             <label for="checkbox4">Hospitalisation</label>
         </div>
+        <div>
+            <input type="checkbox" name="checkbox5" id="checkbox5">
+            <label for="checkbox5">Examen clinique "cdm" / "scanner"</label>
+        </div>
+        <div>
+            <input type="checkbox" name="checkbox6" id="checkbox6">
+            <label for="checkbox6">Nombre de facteurs de risques : </label> <input type="number" name="nb6" id="nb6"
+                value="0" style="width: 32px">
+        </div>
+        Facteurs donnés :
+        <div class="section">
+            <div>
+                <input type="checkbox" name="checkboxf1" id="checkboxf1">
+                <label for="checkboxf1">Âge > 70</label>
+            </div>
+            <div>
+                <input type="checkbox" name="checkboxf2" id="checkboxf2">
+                <label for="checkboxf2">Patho respiratoire chronique</label>
+            </div>
+            <div>
+                <input type="checkbox" name="checkboxf3" id="checkboxf3">
+                <label for="checkboxf3">Insuffisance cardiaque NTHA III ou IV</label>
+            </div>
+            <div>
+                <input type="checkbox" name="checkboxf4" id="checkboxf4">
+                <label for="checkboxf4">Atcd CV</label>
+            </div>
+            <div>
+                <input type="checkbox" name="checkboxf5" id="checkboxf5">
+                <label for="checkboxf5">Diabète insulinodépendant ou compliqué</label>
+            </div>
+            <div>
+                <input type="checkbox" name="checkboxf6" id="checkboxf6">
+                <label for="checkboxf6">Immunodépression</label>
+            </div>
+            <div>
+                <input type="checkbox" name="checkboxf7" id="checkboxf7">
+                <label for="checkboxf7">IMC > 40</label>
+                </div7 <div>
+                <input type="checkbox" name="checkboxf8" id="checkboxf8">
+                <label for="checkboxf8">Insuffisance rénale dialysée</label>
+            </div>
+            <div>
+                <input type="checkbox" name="checkboxf9" id="checkboxf9">
+                <label for="checkboxf9">Grossesse (3ème trimestre)</label>
+            </div>
+            <div>
+                <input type="checkbox" name="checkboxf10" id="checkboxf10">
+                <label for="checkboxf10">Cirrhose >= stade B</label>
+            </div>
+        </div>
         <input type="button" value="Filtrer" onclick="filtrer()">
     </div>
 
@@ -160,17 +215,19 @@
                     Féminin : <span id="feminin">?</span> <br>
                     Masculin : <span id="masculin">?</span> <br>
                 </div>
-                Moyenne d'âge :
+                Âge :
                 <div class="subsection">
-                    Générale : <span id="age">?</span> <br>
-                    Féminine : <span id="age-feminin">?</span> <br>
-                    Masculine : <span id="age-masculin">?</span> <br>
+                    Générale : moyenne <span id="age">?</span>, mediane <span id="agem">?</span> <br>
+                    Féminine : moyenne <span id="age-feminin">?</span>, mediane <span id="age-femininm">?</span> <br>
+                    Masculine : moyenne <span id="age-masculin">?</span>, mediane <span id="age-masculinm">?</span> <br>
                 </div>
                 Répartition :
                 <div class="subsection">
                     Enfants (-18 ans) : <span id="enfants">?</span> <br>
-                    Adultes (-70 ans) : <span id="adultes1">?</span> <br>
-                    Adultes (+70 ans) : <span id="adultes2">?</span> <br>
+                    Adultes (18/59 ans) : <span id="adultes1">?</span> <br>
+                    Adultes (60/64 ans) : <span id="adultes2">?</span> <br>
+                    Adultes (65/69 ans) : <span id="adultes3">?</span> <br>
+                    Adultes (+70 ans) : <span id="adultes4">?</span> <br>
                 </div>
                 Localisation :
                 <div class="subsection" id="geo">
@@ -269,6 +326,21 @@
         return int.toFixed(1)
     }
 
+    function mediane(values) {
+        if (values.length === 0) return 0;
+
+        values.sort(function (a, b) {
+            return a - b;
+        });
+
+        var half = Math.floor(values.length / 2);
+
+        if (values.length % 2)
+            return values[half];
+
+        return (values[half - 1] + values[half]) / 2.0;
+    }
+
 
     // Setup
 
@@ -287,10 +359,15 @@
         rewriteAverage("age", age, " ans")
         rewriteAverage("age-feminin", mapProperty("age")(selectedData.filter(x => x["femme"])), " ans")
         rewriteAverage("age-masculin", mapProperty("age")(selectedData.filter(x => !x["femme"])), " ans")
+        rewrite("agem", mediane(age) + " ans")
+        rewrite("age-femininm", mediane(mapProperty("age")(selectedData.filter(x => x["femme"]))) + " ans")
+        rewrite("age-masculinm", mediane(mapProperty("age")(selectedData.filter(x => !x["femme"]))) + " ans")
 
         rewritePercentage("enfants", age.filter(a => a < 18).length, age.length)
-        rewritePercentage("adultes1", age.filter(a => a >= 18 && a < 70).length, age.length)
-        rewritePercentage("adultes2", age.filter(a => a >= 70).length, age.length)
+        rewritePercentage("adultes1", age.filter(a => a >= 18 && a < 60).length, age.length)
+        rewritePercentage("adultes2", age.filter(a => a >= 60 && a < 65).length, age.length)
+        rewritePercentage("adultes3", age.filter(a => a >= 65 && a < 70).length, age.length)
+        rewritePercentage("adultes4", age.filter(a => a >= 70).length, age.length)
 
         rewriteUniquePercentage("geo", mapProperty("code-postal")(selectedData).sort())
 
@@ -304,62 +381,37 @@
 
         var nomsResultat = document.getElementById("nom-resultat")
         nomsResultat.innerHTML = "<ul>"
-        selectedData.forEach(function(x) {
+        selectedData.forEach(function (x) {
             nomsResultat.innerHTML += "<li>" + x["nom"] + "</li>"
         })
         nomsResultat.innerHTML += "</ul>"
     }
 
-    // Chart utilities
-
-    var colors = ["#169B62", "#5770BE"]
-    var barColors = ["#91AE4F", "#466964", "#5770BE", "#FF8D7E"]
-
-    var percentageOptions = {
-        tooltips: {
-            callbacks: {
-                label: function (tooltipItem, data) {
-                    var allData = data.datasets[tooltipItem.datasetIndex].data;
-                    var tooltipLabel = data.labels[tooltipItem.index];
-                    var tooltipData = allData[tooltipItem.index];
-                    var total = 0;
-                    for (var i in allData) {
-                        total += allData[i];
-                    }
-                    var tooltipPercentage = Math.round((tooltipData / total) * 100);
-                    return " " + tooltipLabel + ': ' + tooltipData + ' (' + tooltipPercentage + '%)';
-                }
-            }
-        }
+    function nbFR(patient, wanted = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]) {
+        var count = 0
+        var fdr = patient["facteurs-de-risque"]
+        if (fdr["age"] && wanted[0]) { count++ }
+        if (fdr["patho-respiratoire"] && wanted[1]) { count++ }
+        if (fdr["insiffisance-cardiaque"] && wanted[2]) { count++ }
+        if (fdr["atcd-cv"] && wanted[3]) { count++ }
+        if (fdr["diabete"] && wanted[4]) { count++ }
+        if (fdr["immunodepression"] && wanted[5]) { count++ }
+        if (fdr["imc"] && wanted[6]) { count++ }
+        if (fdr["insuffisance-renale"] && wanted[7]) { count++ }
+        if (fdr["grossesse"] && wanted[8]) { count++ }
+        if (fdr["cirrhose"] && wanted[9]) { count++ }
+        return count
     }
 
-    function pie(elementID, lines, mapFun, reduceFun, labels, backgroundColors) {
-        new Chart(elementID, {
-            type: 'pie',
-            data: {
-                datasets: [{
-                    data: reduceFun(mapFun(lines)),
-                    backgroundColor: backgroundColors
-                }],
-                labels: labels
-            },
-            options: percentageOptions
-        })
-    }
-
-    function bar(elementID, lines, mapFun, reduceFun, datasetLabel, labels, backgroundColors) {
-        new Chart(elementID, {
-            type: 'bar',
-            data: {
-                datasets: [{
-                    label: datasetLabel,
-                    data: reduceFun(mapFun(lines)),
-                    backgroundColor: backgroundColors
-                }],
-                labels: labels
-            },
-            options: percentageOptions
-        })
+    function miseEnPagePatient(patient, suivi) {
+        return "<li>" + patient["nom"] + "<ul>" +
+            "<li>Date : " + patient["date-consultation"] + "</li>" +
+            "<li>Heure : " + patient["heure-consultation"] + "</li>" +
+            "<li>Médecin : " + patient["nom-medecin"] + "</li>" +
+            "<li>Infirmier·e : " + patient["nom-infirmier"] + "</li>" +
+            "<li>Suivi : " + suivi + "</li>" +
+            "<li>Nb facteurs de risques : " + nbFR(patient) + "</li>" +
+            "</ul></li>"
     }
 
     function recherchePatient() {
@@ -374,7 +426,7 @@
                 if (line["suivi"]["test-negatif"]) suivi = "Test négatif"
                 if (line["suivi"]["test-positif"]) suivi = "Test positif"
                 if (line["suivi"]["hospitalisation"]) suivi = "Autosurveillance à domicile sans test"
-                resultat.innerHTML += "<li>" + line["nom"] + "<ul><li>Date : " + line["date-consultation"] + "</li><li>Heure : " + line["heure-consultation"] + "</li><li>Médecin : " + line["nom-medecin"] + "</li><li>Infirmier·e : " + line["nom-infirmier"] + "</li><li>Suivi : " + suivi + "</li></ul></li>"
+                resultat.innerHTML += miseEnPagePatient(line, suivi)
             }
         })
         resultat.innerHTML += "</ul>"
@@ -392,35 +444,83 @@
                 if (line["suivi"]["test-negatif"]) suivi = "Test négatif"
                 if (line["suivi"]["test-positif"]) suivi = "Test positif"
                 if (line["suivi"]["hospitalisation"]) suivi = "Autosurveillance à domicile sans test"
-                resultat.innerHTML += "<li>" + line["nom"] + "<ul><li>Date : " + line["date-consultation"] + "</li><li>Heure : " + line["heure-consultation"] + "</li><li>Médecin : " + line["nom-medecin"] + "</li><li>Infirmier·e : " + line["nom-infirmier"] + "</li><li>Suivi : " + suivi + "</li></ul></li>"
+                resultat.innerHTML += miseEnPagePatient(line, suivi)
             }
         })
         resultat.innerHTML += "</ul>"
     }
 
     function filtrer() {
-        if (document.getElementById("checkbox0").checked) {
-            selectedData = data
-            update()
-            return 1
-        }
+        var ou = document.getElementById("checkboxou").checked
         var c1 = document.getElementById("checkbox1").checked
         var c2 = document.getElementById("checkbox2").checked
         var c3 = document.getElementById("checkbox3").checked
         var c4 = document.getElementById("checkbox4").checked
-        selectedData = data.filter(function(x) {
-            var selected = false
+        var c5 = document.getElementById("checkbox5").checked
+        var c6 = document.getElementById("checkbox6").checked
+        var cRisque = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(x => document.getElementById("checkboxf" + x).checked)
+        console.log(cRisque);
+
+        selectedData = data.filter(function (x) {
+            var selected = !ou
             if (c1) {
-                selected = selected || x["suivi"]["autosurveillance"]
+                if (ou) {
+                    selected = selected || x["suivi"]["autosurveillance"]
+                } else {
+                    selected = selected && x["suivi"]["autosurveillance"]
+                }
             }
             if (c2) {
-                selected = selected || x["suivi"]["test-negatif"]
+                if (ou) {
+                    selected = selected || x["suivi"]["test-negatif"]
+                } else {
+                    selected = selected && x["suivi"]["test-negatif"]
+                }
             }
             if (c3) {
-                selected = selected || x["suivi"]["test-positif"]
+                if (ou) {
+                    selected = selected || x["suivi"]["test-positif"]
+                } else {
+                    selected = selected && x["suivi"]["test-positif"]
+                }
             }
             if (c4) {
-                selected = selected || x["suivi"]["hospitalisation"]
+                if (ou) {
+                    selected = selected || x["suivi"]["hospitalisation"]
+                } else {
+                    selected = selected && x["suivi"]["hospitalisation"]
+                }
+            }
+            if (c5) {
+                if (!("examen-clinique" in x)) {
+                    if (!ou) {
+                        selected = false
+                    }
+                } else {
+                    var exc = x["examen-clinique"].toLowerCase()
+
+                    if (ou) {
+                        selected = selected || exc.includes("cdm") || exc.includes("scanner")
+                    } else {
+                        selected = selected && (exc.includes("cdm") || exc.includes("scanner"))
+                    }
+                }
+            }
+            if (c6) {
+                if (ou) {
+                    selected = selected || nbFR(x) == document.getElementById("nb6").value
+                } else {
+                    selected = selected && nbFR(x) == document.getElementById("nb6").value
+                }
+            }
+            var crnb = reduceTrueFalse(cRisque)[0]
+            if (crnb == 0) {
+                return selected
+            }
+            if (ou) {
+                selected = selected || nbFR(x, cRisque) >= 1
+            } else {
+                selected = selected && nbFR(x, cRisque) == crnb
             }
             return selected
         })
@@ -430,7 +530,7 @@
 
     var fauxNegatifs = document.getElementById("faux-negatifs")
     fauxNegatifs.innerHTML = "<ul>"
-    data.filter(x => x["suivi"]["test-negatif"] && x["diagnostic"] == "Tres Probable").forEach(function(line) {
+    data.filter(x => x["suivi"]["test-negatif"] && x["diagnostic"] == "Tres Probable").forEach(function (line) {
         fauxNegatifs.innerHTML += "<li>" + line["nom"] + "</li>"
     })
     fauxNegatifs.innerHTML += "</ul>"
