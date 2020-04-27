@@ -146,12 +146,25 @@
             <label for="checkbox3">Test positif</label>
         </div>
         <div>
-            <input type="checkbox" name="checkbox4" id="checkbox4">
-            <label for="checkbox4">Hospitalisation</label>
+            <input type="checkbox" name="checkbox5" id="checkbox5">
+            <label for="checkbox5">Examen clinique "tdm" / "scanner"</label>
         </div>
         <div>
-            <input type="checkbox" name="checkbox5" id="checkbox5">
-            <label for="checkbox5">Examen clinique "cdm" / "scanner"</label>
+            <input type="checkbox" name="checkbox5b" id="checkbox5b"> <select name="selectsuivi" id="selectsuivi">
+                <option value="autosurveillance">Autosurveillance</option>
+                <option value="test-negatif">Test négatif</option>
+                <option value="test-positif">Test positif</option>
+                <option value="hospitalisation">Hospitalisation</option>
+            </select>
+        </div>
+        <div>
+            <input type="checkbox" name="checkbox5t" id="checkbox5t"> <select name="selectdiagnostic" id="selectdiagnostic">
+                <option value="Peu Probable">Peu Probable</option>
+                <option value="Suspect">Suspect</option>
+                <option value="Tres Probable">Tres Probable</option>
+                <option value="COVID confirme par test">COVID confirme par test</option>
+                <option value="Manquant">Manquant</option>
+            </select>
         </div>
         <div>
             <input type="checkbox" name="checkbox6" id="checkbox6">
@@ -187,7 +200,8 @@
             <div>
                 <input type="checkbox" name="checkboxf7" id="checkboxf7">
                 <label for="checkboxf7">IMC > 40</label>
-                </div7 <div>
+            </div>
+            <div>
                 <input type="checkbox" name="checkboxf8" id="checkboxf8">
                 <label for="checkboxf8">Insuffisance rénale dialysée</label>
             </div>
@@ -455,8 +469,9 @@
         var c1 = document.getElementById("checkbox1").checked
         var c2 = document.getElementById("checkbox2").checked
         var c3 = document.getElementById("checkbox3").checked
-        var c4 = document.getElementById("checkbox4").checked
         var c5 = document.getElementById("checkbox5").checked
+        var c5b = document.getElementById("checkbox5b").checked
+        var c5t = document.getElementById("checkbox5t").checked
         var c6 = document.getElementById("checkbox6").checked
         var cRisque = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(x => document.getElementById("checkboxf" + x).checked)
         console.log(cRisque);
@@ -484,13 +499,6 @@
                     selected = selected && x["suivi"]["test-positif"]
                 }
             }
-            if (c4) {
-                if (ou) {
-                    selected = selected || x["suivi"]["hospitalisation"]
-                } else {
-                    selected = selected && x["suivi"]["hospitalisation"]
-                }
-            }
             if (c5) {
                 if (!("examen-clinique" in x)) {
                     if (!ou) {
@@ -500,10 +508,26 @@
                     var exc = x["examen-clinique"].toLowerCase()
 
                     if (ou) {
-                        selected = selected || exc.includes("cdm") || exc.includes("scanner")
+                        selected = selected || exc.includes("tdm") || exc.includes("scanner")
                     } else {
-                        selected = selected && (exc.includes("cdm") || exc.includes("scanner"))
+                        selected = selected && (exc.includes("tdm") || exc.includes("scanner"))
                     }
+                }
+            }
+            if (c5b) {
+                var selectedValue = document.getElementById("selectsuivi").value
+                if (ou) {
+                    selected = selected || x["suivi"][selectedValue]
+                } else {
+                    selected = selected && x["suivi"][selectedValue]
+                }
+            }
+            if (c5t) {
+                var selectedValue = document.getElementById("selectdiagnostic").value
+                if (ou) {
+                    selected = selected || x["diagnostic"] == selectedValue
+                } else {
+                    selected = selected && x["diagnostic"] == selectedValue
                 }
             }
             if (c6) {
