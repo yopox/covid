@@ -158,7 +158,8 @@
             </select>
         </div>
         <div>
-            <input type="checkbox" name="checkbox5t" id="checkbox5t"> <select name="selectdiagnostic" id="selectdiagnostic">
+            <input type="checkbox" name="checkbox5t" id="checkbox5t"> <select name="selectdiagnostic"
+                id="selectdiagnostic">
                 <option value="Peu Probable">Peu Probable</option>
                 <option value="Suspect">Suspect</option>
                 <option value="Tres Probable">Tres Probable</option>
@@ -214,6 +215,20 @@
                 <label for="checkboxf10">Cirrhose >= stade B</label>
             </div>
         </div>
+        Consultation :
+        <div class="section">
+            <div>
+                <input type="checkbox" name="checkboxd1" id="checkboxd1">
+                <label for="checkboxd1">À partir du :</label>
+                <input type="date" id="date-debut">
+            </div>
+            <div>
+                <input type="checkbox" name="checkboxd2" id="checkboxd2">
+                <label for="checkboxd2">Jusqu'au :</label>
+                <input type="date" id="date-fin">
+            </div>
+        </div>
+
         <input type="button" value="Filtrer" onclick="filtrer()">
     </div>
 
@@ -474,7 +489,8 @@
         var c5t = document.getElementById("checkbox5t").checked
         var c6 = document.getElementById("checkbox6").checked
         var cRisque = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(x => document.getElementById("checkboxf" + x).checked)
-        console.log(cRisque);
+        var d1 = document.getElementById("checkboxd1").checked
+        var d2 = document.getElementById("checkboxd2").checked
 
         selectedData = data.filter(function (x) {
             var selected = !ou
@@ -535,6 +551,25 @@
                     selected = selected || nbFR(x) == document.getElementById("nb6").value
                 } else {
                     selected = selected && nbFR(x) == document.getElementById("nb6").value
+                }
+            }
+            var dateC = "20" + x["date-consultation"].substring(6, 8) + "-" + x["date-consultation"].substring(3, 5) + "-" + x["date-consultation"].substring(0, 2)
+            if (d1) {
+                console.log(document.getElementById("date-debut").value)
+                console.log(dateC)
+                console.log(document.getElementById("date-debut").value <= dateC)
+
+                if (ou) {
+                    selected = selected || document.getElementById("date-debut").value <= dateC
+                } else {
+                    selected = selected && document.getElementById("date-debut").value <= dateC
+                }
+            }
+            if (d2) {
+                if (ou) {
+                    selected = selected || document.getElementById("date-fin").value >= dateC
+                } else {
+                    selected = selected && document.getElementById("date-fin").value >= dateC
                 }
             }
             var crnb = reduceTrueFalse(cRisque)[0]
